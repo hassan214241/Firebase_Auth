@@ -30,12 +30,13 @@ export const CustomInput = props => {
 const styles = StyleSheet.create({
   textInput: {
     height: 50,
-    width: '75%',
+    width: '80%',
     margin: 10,
     backgroundColor: 'white',
-    borderColor: 'black',
+    borderColor: '#81defc',
     borderWidth: 2,
-    borderRadius: 10,
+    borderRadius: 25,
+    padding: 10,
   },
   errorText: {
     fontSize: 10,

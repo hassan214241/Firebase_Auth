@@ -9,8 +9,8 @@ const {Navigator, Screen} = Stack;
 export const AuthStack = () => {
   return (
     <Navigator>
-      <Screen name="Login" component={Login} />
-      <Screen name="Signup" component={Signup} />
+      <Screen name="Login" component={Login} options={{headerShown: false}} />
+      <Screen name="Signup" component={Signup} options={{headerShown: false}} />
     </Navigator>
   );
 };

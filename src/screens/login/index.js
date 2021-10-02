@@ -1,11 +1,14 @@
 import React, {useState} from 'react';
-import {View, TextInput, Button, StyleSheet, Text, Image} from 'react-native';
+import {View, TextInput, StyleSheet, Text, Image} from 'react-native';
+import {Button} from 'react-native-paper';
 import * as Yup from 'yup';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Formik} from 'formik';
 import Icone from 'react-native-vector-icons/AntDesign';
 import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {black} from 'react-native-paper/lib/typescript/styles/colors';
 
 GoogleSignin.configure({
   webClientId:
@@ -52,23 +55,26 @@ export const Login = () => {
   const {navigate} = useNavigation();
 
   return (
-    <View style={{flex: 1}}>
-      <View style={{flex: 1, alignItems: 'center', marginTop: 90}}>
+    <View style={{flex: 1, backgroundColor: '#0e223b'}}>
+      <View style={{flex: 1, alignItems: 'center', marginTop: 50}}>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={value => LoginUser(value.email, value.password)}>
           {({handleChange, handleBlur, handleSubmit, values, errors}) => (
             <>
-              <Text>
-                <Icone name="user" size={40} color="black" />
+              <Image
+                source={require('../../assests/logo2.jpg')}
+                style={{width: 80, height: 80, borderRadius: 50}}
+              />
+              <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>
+                LOGIN
               </Text>
-              <Text style={styles.LogInText}>LOGIN</Text>
-
               <TextInput
                 style={styles.textInput}
                 name="email"
                 placeholder="Email Address"
+                placeholderTextColor="#003f5c"
                 onChangeText={handleChange('email')}
                 onBlur={handleBlur('email')}
                 value={values.email}
@@ -81,6 +87,7 @@ export const Login = () => {
                 style={styles.textInput}
                 name="password"
                 placeholder="Password"
+                placeholderTextColor="#003f5c"
                 onChangeText={handleChange('password')}
                 onBlur={handleBlur('password')}
                 value={values.password}
@@ -91,13 +98,47 @@ export const Login = () => {
                   {errors.password}
                 </Text>
               )}
-              <Button onPress={handleSubmit} title="LOGIN" />
-
-              <Button title="SIGN UP" onPress={() => navigate('Signup')} />
+              <Text></Text>
               <Button
-                title="LOGIN WITH GOOGLE"
+                onPress={handleSubmit}
+                icon={({color, size}) => (
+                  <Icon name="login" color={'#fff'} size={20} />
+                )}
+                contentStyle={{
+                  borderWidth: 2,
+                  width: 200,
+                  borderRadius: 25,
+                  borderColor: '#fff',
+                  backgroundColor: '#44b6e4',
+                }}
+                labelStyle={{color: '#fff'}}>
+                LOGIN
+              </Button>
+              <Text></Text>
+              <Button
                 onPress={() => onGoogleButtonPress()}
-              />
+                contentStyle={{
+                  borderWidth: 2,
+                  width: 200,
+                  borderRadius: 25,
+                  borderColor: '#44b6e4',
+                  backgroundColor: '#fff',
+                }}
+                labelStyle={{color: 'black'}}
+                icon={({color, size}) => (
+                  <Icon name="google" color={'#44b6e4'} size={20} />
+                )}>
+                GOOGLE
+              </Button>
+              <Text></Text>
+              <Button
+                labelStyle={{color: '#fff', fontSize: 16}}
+                onPress={() => navigate('Signup')}
+                icon={({color, size}) => (
+                  <Icon name="arrow-right" color={'#fff'} size={20} />
+                )}>
+                SIGN UP
+              </Button>
             </>
           )}
         </Formik>
@@ -109,12 +150,13 @@ export const Login = () => {
 const styles = StyleSheet.create({
   textInput: {
     height: 50,
-    width: '75%',
+    width: '80%',
     margin: 10,
     backgroundColor: 'white',
-    // borderColor: "gray",
+    borderColor: '#81defc',
     borderWidth: 2,
-    borderRadius: 10,
+    borderRadius: 25,
+    padding: 10,
   },
   LogInText: {
     fontSize: 20,
