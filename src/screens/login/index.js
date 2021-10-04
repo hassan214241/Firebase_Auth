@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, TextInput, StyleSheet, Text, Image} from 'react-native';
+import {View, TextInput, StyleSheet, Text, Image,ScrollView} from 'react-native';
 import {Button} from 'react-native-paper';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -55,8 +55,9 @@ export const Login = () => {
   const {navigate} = useNavigation();
 
   return (
-    <View style={{flex: 1, backgroundColor: '#0e223b'}}>
-      <View style={{flex: 1, alignItems: 'center', marginTop: 50}}>
+    <View style={{flex: 1, backgroundColor: '#010a29'}}>
+    <ScrollView>
+      <View style={{flex: 1, alignItems: 'center', marginTop: 30}}>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -64,8 +65,8 @@ export const Login = () => {
           {({handleChange, handleBlur, handleSubmit, values, errors}) => (
             <>
               <Image
-                source={require('../../assests/logo2.jpg')}
-                style={{width: 80, height: 80, borderRadius: 50}}
+                source={require('../../assests/logo3.jpg')}
+                style={{width: 100, height: 100, borderRadius: 50}}
               />
               <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>
                 LOGIN
@@ -143,6 +144,7 @@ export const Login = () => {
           )}
         </Formik>
       </View>
+      </ScrollView>
     </View>
   );
 };
