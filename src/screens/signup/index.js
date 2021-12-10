@@ -8,24 +8,25 @@ import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const createUser = async (email, password) => {
-  try {
-    let userCreate = await auth().createUserWithEmailAndPassword(
-      email,
-      password,
-    );
-
-    if (userCreate) {
-      console.log('user create successfully');
-    } else {
-      console.log('error');
-    }
-  } catch (error) {
-    console.log('Error', error);
-    alert('not create user');
-  }
-};
 export const Signup = () => {
+  const createUser = async (email, password) => {
+    try {
+      let userCreate = await auth().createUserWithEmailAndPassword(
+        email,
+        password,
+      );
+
+      if (userCreate) {
+        console.log('user create successfully');
+      } else {
+        console.log('error');
+      }
+    } catch (error) {
+      console.log('Error', error);
+      alert('not create user');
+    }
+  };
+
   const validationSchema = Yup.object({
     email: Yup.string().email('Invalid email').required('Required'),
     password: Yup.string().required('Required'),

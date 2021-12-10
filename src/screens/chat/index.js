@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, FlatList} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
-import {Button} from 'react-native-paper';
+import {ActivityIndicator, Button} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   Container,
@@ -16,7 +16,9 @@ import {
   MessageText,
   TextSection,
 } from '../../styles/ChatStyle';
-import {MessageData} from './MessageData';
+// import {MessageData} from './MessageData';
+// import {Searchbar} from 'react-native-paper';
+import firestore from '@react-native-firebase/firestore';
 
 const LogoutUser = async () => {
   try {
@@ -27,54 +29,173 @@ const LogoutUser = async () => {
 };
 export const Chat = () => {
   const {navigate} = useNavigation();
-  return (
-    <View style={{flex: 1}}>
-      <Container>
-        <FlatList
-          data={MessageData}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <Card
-              onPress={() => navigate('Message', {userName: item.userName})}>
-              <UserInfo>
-                <UserImgWrapper>
-                  <UserImg source={item.userImg} />
-                </UserImgWrapper>
-                <TextSection>
-                  <UserInfoText>
-                    <UserName>{item.userName}</UserName>
-                    <PostTime>{item.messageTime}</PostTime>
-                  </UserInfoText>
-                  <MessageText>{item.messageText}</MessageText>
-                </TextSection>
-              </UserInfo>
-            </Card>
-          )}
-        />
-      </Container>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#ffffff',
-        }}>
-        <Button
-          icon={({color, size}) => (
-            <Icon name="exit-to-app" color={'#fff'} size={25} />
-          )}
-          contentStyle={{
-            borderWidth: 2,
-            width: 200,
-            borderRadius: 25,
-            borderColor: '#fff',
-            backgroundColor: 'red',
-          }}
-          labelStyle={{color: '#fff'}}
-          onPress={() => LogoutUser()}>
-          SIGN OUT
-        </Button>
+  const [isLoading, setIsLoading] = useState(true);
+  const [chats, setChats] = useState([]);
+  // const [profiles, setProfiles] = useState([]);
+
+  const me = 'user1';
+
+  const fetchUserProfiles = (user_ids = []) => {
+    return new Promise(async (res, rej) => {
+      try {
+        const promises = user_ids.map(user_id => {
+          return firestore()
+            .collection('users')
+            .doc(user_id)
+            .get()
+            .then(doc => {
+              return {
+                ...doc.data(),
+                id: user_id,
+              };
+            });
+        });
+        const profiles = await Promise.all(promises);
+        // console.log(profiles);
+        res(profiles);
+      } catch (error) {
+        rej(error);
+      }
+    });
+  };
+
+  React.useEffect(() => {
+    console.log(chats, 'users');
+  }, [chats]);
+
+  React.useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('chats')
+      .where('participants', 'array-contains', me)
+      .onSnapshot(async documentSnapshot => {
+        const _chats = documentSnapshot.docs.map(doc => {
+          return {
+            ...doc.data(),
+            id: doc.id,
+          };
+        });
+        // console.log(_chats);
+        const userIdsRawArray = _chats.map(chat => {
+          return chat?.participants;
+        });
+        const userIds = [...new Set(userIdsRawArray.flat())];
+        const profiles = await fetchUserProfiles(userIds);
+        // console.log(profiles);
+        setChats([
+          ..._chats.map(({participants, id}) => {
+            const otherUsers = participants.filter(id => id !== me);
+            const otherUsersProfiles = otherUsers.map(otherUserId => {
+              return profiles.find(({id}) => otherUserId === id);
+            });
+            console.log(otherUsersProfiles, 'profiles');
+            return {
+              id,
+              users: [...otherUsersProfiles],
+            };
+          }),
+        ]);
+        setIsLoading(false);
+      });
+    return unsubscribe;
+  }, []);
+
+  // Test Code  Start
+
+  // useEffect(()=>{
+  //   const unsubscribe = firestore()
+  //     .collection('chat')
+  //     .where('participants', 'array-contains', me).onSnapshot((querydocuments)=>{
+  //       const _chats = querydocuments.docs.map((doc)=>{
+  //         return{
+  //           ...doc.data(),
+  //           id:doc.id,
+  //         }
+  //       });
+  //      getparticipants= _chats.map((chat)=>{
+  //         return chat?.participants
+  //       });
+  //       const romveDub = [...new Set(getparticipants.flat())];
+  //       const profile = await fetchUserProfiles(romveDub);
+
+  //       setChats([
+  //         _chats.map(({participants,id})=>{
+  //           const otheruser = participants.filter((id)=> id !== me)
+  //           const otherUsersProfiles = otheruser.map((otheruser)=>{
+  //              return profile.find(({id}) => otheruser == id);
+  //           })
+  //           return [...otherUsersProfiles];
+  //         })
+  //       ])
+  //     })
+  //     return unsubscribe;
+  // },[])
+
+  // Test Code end
+
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <ActivityIndicator />
       </View>
-    </View>
+    );
+  }
+  return (
+    <React.Fragment>
+      {/* <View style={{flex: 1}}>
+         <Searchbar
+          style={{margin: 8, height: 45}}
+          placeholder="Search"
+          onChangeText={onChangeSearch}
+          value={searchQuery}
+        /> 
+      </View> */}
+      <View style={{flex: 1}}>
+        <Container>
+          <FlatList
+            data={chats}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => {
+              // console.log(item);
+              return (
+                <Card
+                  onPress={() =>
+                    navigate('Message', {chatId: item.id, users: item.users})
+                  }>
+                  <UserInfo>
+                    <UserImgWrapper>
+                      <UserImg source={{uri: item.users[0].avatar}} />
+                    </UserImgWrapper>
+                    <TextSection>
+                      <UserInfoText>
+                        <UserName>{item.users[0].name}</UserName>
+                        <PostTime>{'Today'}</PostTime>
+                      </UserInfoText>
+                      <MessageText>{'Hello there!'}</MessageText>
+                    </TextSection>
+                  </UserInfo>
+                </Card>
+              );
+            }}
+          />
+
+          <Button
+            icon={({color, size}) => (
+              <Icon name="exit-to-app" color={'#fff'} size={25} />
+            )}
+            contentStyle={{
+              borderWidth: 2,
+              width: 200,
+              padding: 5,
+              borderRadius: 25,
+              borderColor: '#fff',
+              backgroundColor: 'red',
+            }}
+            labelStyle={{color: '#fff'}}
+            onPress={() => LogoutUser()}>
+            SIGN OUT
+          </Button>
+        </Container>
+      </View>
+    </React.Fragment>
   );
 };

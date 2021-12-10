@@ -39,4 +39,20 @@ export const MessageData = [
     messageText:
       'Hey there, this is my test for a post of my social app in React Native.',
   },
+  {
+    id: '6',
+    userName: 'Hamza',
+    userImg: require('../../assests/user-1.jpg'),
+    messageTime: '2 days ago',
+    messageText:
+      'Hey there, this is my test for a post of my social app in React Native.',
+  },
+  {
+    id: '7',
+    userName: 'Ali',
+    userImg: require('../../assests/user-1.jpg'),
+    messageTime: '2 days ago',
+    messageText:
+      'Hey there, this is my test for a post of my social app in React Native.',
+  },
 ];
