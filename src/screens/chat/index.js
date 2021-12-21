@@ -99,39 +99,6 @@ export const Chat = () => {
     return unsubscribe;
   }, []);
 
-  // Test Code  Start
-
-  // useEffect(()=>{
-  //   const unsubscribe = firestore()
-  //     .collection('chat')
-  //     .where('participants', 'array-contains', me).onSnapshot((querydocuments)=>{
-  //       const _chats = querydocuments.docs.map((doc)=>{
-  //         return{
-  //           ...doc.data(),
-  //           id:doc.id,
-  //         }
-  //       });
-  //      getparticipants= _chats.map((chat)=>{
-  //         return chat?.participants
-  //       });
-  //       const romveDub = [...new Set(getparticipants.flat())];
-  //       const profile = await fetchUserProfiles(romveDub);
-
-  //       setChats([
-  //         _chats.map(({participants,id})=>{
-  //           const otheruser = participants.filter((id)=> id !== me)
-  //           const otherUsersProfiles = otheruser.map((otheruser)=>{
-  //              return profile.find(({id}) => otheruser == id);
-  //           })
-  //           return [...otherUsersProfiles];
-  //         })
-  //       ])
-  //     })
-  //     return unsubscribe;
-  // },[])
-
-  // Test Code end
-
   if (isLoading) {
     return (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>

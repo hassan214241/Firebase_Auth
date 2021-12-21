@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {View, TouchableOpacity, Text} from 'react-native';
 import {
   GiftedChat,
   Bubble,
@@ -8,18 +8,29 @@ import {
   MessageImageProps,
   BubbleProps,
 } from 'react-native-gifted-chat';
-// import storage from '@react-native-firebase/storage';
+import storage from '@react-native-firebase/storage';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-// import {firebase} from '@react-native-firebase/auth';
+import ImagePicker from 'react-native-image-crop-picker';
 import firestore from '@react-native-firebase/firestore';
 import {useRoute} from '@react-navigation/native';
+import DocumentPicker from 'react-native-document-picker';
+import {Modal, Portal, Button, Provider} from 'react-native-paper';
+// import {Modal, Portal, Text, Button, Provider} from 'react-native-paper';
 
 export const Message = () => {
   const [messages, setMessages] = useState([]);
+  const [mediaUri, setMediaUri] = useState(null);
+  const [isUploadLoading, setIsUploadLoading] = useState(false);
+  const [mediaType, setMediaType] = useState(null);
   const {params} = useRoute();
-  console.log(params.users, 'params user');
+  // console.log(params.users, 'params user');
+
+  // modal states
+  // const [visible, setVisible] = React.useState(false);
+  // const showModal = () => setVisible(true);
+  // const hideModal = () => setVisible(false);
+  // const containerStyle = {backgroundColor: 'red', padding: 20};
 
   const me = {
     id: 'user1',
@@ -38,10 +49,10 @@ export const Message = () => {
             // .push(me)
             .find(({id}) => doc.data().user === id);
           _user = _user ? _user : me;
-
           return {
             _id: doc.id,
             ...doc.data(),
+            // media: mediaType === 'video' ? mediaUri.video : mediaUri.image,
             createdAt: new Date(parseInt(doc.data()?.createdAt)),
             user: {
               _id: _user.id,
@@ -78,8 +89,7 @@ export const Message = () => {
     );
     // console.log(messages, 'messages');
     const message = messages[0];
-    const _date = new Date(message.createdAt);
-    const createdAt = parseInt(_date.getTime() / 1000);
+
     await firestore()
       .collection('chats')
       .doc(params?.chatId)
@@ -87,17 +97,14 @@ export const Message = () => {
       .add({
         ...(message?.text && {text: message?.text}),
         ...(message?.image && {image: message?.image}),
-        createdAt,
+        // ...(message?.video && {video: message?.video}),
+        createdAt: Date.now(),
         user: message.user._id,
       });
   }, []);
 
   const CustomMessageImage = props => {
-    React.useEffect(() => {
-      // const unsubscribe = firestore().collection('users').doc('users').add({});
-      // return unsubscribe;
-    }, []);
-    // console.log(props.currentMessage.image, 'props');
+    React.useEffect(() => {}, []);
     return <MessageImage {...props} />;
   };
 
@@ -122,65 +129,53 @@ export const Message = () => {
       />
     );
   };
-  // upload Image
-
-  // const UploadImage = async () => {
-  //   const [image, setImage] = useState(null);
-  //   const [uploading, setUploading] = useState(false);
-  //   const [transferred, setTransferred] = useState(0);
-
-  //   const {uri} = image;
-  //   const filename = uri.substring(uri.lastIndexOf('/') + 1);
-  //   const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-  //   setUploading(true);
-  //   setTransferred(0);
-  //   const task = storage().ref(filename).putFile(uploadUri);
-  //   // set progress state
-  //   task.on('state_changed', snapshot => {
-  //     setTransferred(
-  //       Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000,
-  //     );
-  //   });
-  //   try {
-  //     await task;
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  //   setUploading(false);
-  //   Alert.alert(
-  //     'Photo uploaded!',
-  //     'Your photo has been uploaded to Firebase Cloud Storage!',
-  //   );
-  //   setImage(null);
-  // };
 
   //   send render function
   const renderSend = props => {
     return (
-      <Send {...props}>
-        <View style={{display: 'flex', flexDirection: 'row'}}>
-          <MaterialCommunityIcons
-            name="send-circle"
-            style={{marginBottom: 5, marginRight: 5}}
-            size={38}
-            color="#2e64e5"
-          />
+      <>
+        <Send {...props}>
+          <View
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              width: 50,
+              height: 48,
+            }}>
+            <MaterialCommunityIcons
+              name="send-circle"
+              style={{marginBottom: 10, marginRight: 10}}
+              size={38}
+              color="#2e64e5"
+            />
+
+            {/*
           <MaterialCommunityIcons
             name="camera"
             style={{marginBottom: 5, marginRight: 5, marginTop: 5}}
             size={34}
             color="black"
-            onPress={_launchCamera}
+            // onPress={_launchCamera}
           />
+           */}
+          </View>
+        </Send>
+        <View
+          style={{
+            display: 'flex',
+            width: 50,
+            height: 48,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
           <MaterialCommunityIcons
-            name="google-photos"
-            style={{marginBottom: 5, marginRight: 5, marginTop: 5}}
+            name="plus"
             size={34}
-            color="black"
-            onPress={_launchImageLibrary}
+            color="#49b7e4"
+            onPress={openGallery}
           />
         </View>
-      </Send>
+      </>
     );
   };
   //   scrollToBottomComponent function
@@ -188,84 +183,112 @@ export const Message = () => {
     return <FontAwesome name="angle-double-down" size={22} color="#333" />;
   };
 
-  // lunch camera
+  // open document functin
 
-  const _launchCamera = async () => {
+  const openDocument = async () => {
     try {
-      let options = {
-        storageOptions: {
-          skipBackup: true,
-          path: 'images',
-        },
-      };
-      const response = await launchCamera(options);
-      console.log('Response = ', response);
-
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-        alert(response.customButton);
+      setIsUploadLoading(true);
+      const res = await DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.allFiles],
+      });
+      console.log('res document', res);
+      console.log(
+        res.uri,
+        res.fileCopyUri,
+        res.type, // mime type
+        res.name,
+        res.size,
+      );
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('document cancle ');
+      } else if (DocumentPicker.isInProgress(err)) {
+        console.log('document in process');
       } else {
-        const ClickImage = response.assets;
-        console.log('ClickImage', ClickImage);
-
-        // setIsCamera({
-        //   filePath: response,
-        //   fileData: response.data,
-        //   fileUri: response.uri,
-        // });
+        console.log(err, 'error');
       }
-    } catch (error) {
-      console.log('error', error);
+    } finally {
+      setIsUploadLoading(false);
     }
   };
 
-  // lunch gallery
-  const _launchImageLibrary = async () => {
-    try {
-      let options = {
-        storageOptions: {
-          skipBackup: true,
-          path: 'images',
-        },
-      };
-      const response = await launchImageLibrary(options);
+  // Open Gallery function
+
+  const openGallery = () => {
+    ImagePicker.openPicker({
+      mediaType: 'any',
+    }).then(response => {
       if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorMessage);
+        console.log('didcancle');
+      } else if (response.error) {
+        console.log('error');
+      } else if (Platform.OS === 'ios') {
+        const _path = response.sourceURL;
       } else {
-        const selectedImages = response.assets;
-        console.log(selectedImages);
-        // const source = {uri: response.assets[0].uri};
-        // console.log('response', JSON.stringify(response));
-        // setIsGallery({
-        //   filePath: response,
-        //   fileData: response.data,
-        //   fileUri: response.uri,
-        // });
+        const selectedImages = response.path;
+        console.log('selectedImages', selectedImages);
+        const _type = response.mime.split('/')[0];
+        console.log('media type', _type);
+        setMediaType(_type);
+        // setMediaUri(null);
+        uploadMedia(selectedImages);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    });
+  };
+
+  // uniqueId create
+  const uniqueId = () => {
+    var S4 = function () {
+      return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    };
+    return (
+      S4() +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      '-' +
+      S4() +
+      S4() +
+      S4()
+    );
+  };
+
+  // upload Media to firebase
+
+  const uploadMedia = file => {
+    setIsUploadLoading(true);
+    const reference = storage().ref(uniqueId());
+    const task = reference.putFile(file);
+    task
+      .then(async () => {
+        const downloadURL = await reference.getDownloadURL();
+        console.log('firebase url', downloadURL);
+        setMediaUri(downloadURL);
+      })
+      .finally(() => {
+        setIsUploadLoading(false);
+      });
   };
 
   return (
-    <GiftedChat
-      messages={messages}
-      onSend={messages => onSend(messages)}
-      user={{
-        _id: 'user1',
-      }}
-      placeholder="Type a message"
-      renderBubble={renderBubble}
-      renderSend={renderSend}
-      scrollToBottom
-      scrollToBottomComponent={scrollToBottomComponent}
-      alwaysShowSend={true}
-    />
+    <React.Fragment>
+      <GiftedChat
+        messages={messages}
+        onSend={messages => onSend(messages)}
+        user={{
+          _id: 'user1',
+        }}
+        placeholder="Type a message"
+        renderBubble={renderBubble}
+        renderSend={renderSend}
+        scrollToBottom
+        scrollToBottomComponent={scrollToBottomComponent}
+        // alwaysShowSend={true}
+      />
+    </React.Fragment>
   );
 };

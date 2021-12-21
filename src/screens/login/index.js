@@ -16,37 +16,26 @@ import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
-// GoogleSignin.configure({
-//   webClientId:
-//     '490715511962-1t5eq461bonlngvc1424emokveepilv3.apps.googleusercontent.com',
-// });
-
-// const onGoogleButtonPress = async () => {
-//   try {
-//     const {idToken} = await GoogleSignin.signIn();
-//     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-//     return auth().signInWithCredential(googleCredential);
-//   } catch (error) {
-//     alert('user not login with google');
-//   }
-// };
-const LoginUser = async (email, password) => {
-  try {
-    let UserLogin = await auth().signInWithEmailAndPassword(email, password);
-    if (UserLogin) {
-      console.log('user are login');
-    } else {
-      console.log('user email and password incorrect');
-      // alert('user email and password incorrect');
-    }
-  } catch (error) {
-    console.log('error', error);
-    alert('user email and password incorrect');
-  }
-};
-
 export const Login = () => {
-  // const [isloading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const LoginUser = async (email, password) => {
+    try {
+      setIsLoading(true);
+      let UserLogin = await auth().signInWithEmailAndPassword(email, password);
+      if (UserLogin) {
+        console.log('user are login');
+      } else {
+        console.log('user email and password incorrect');
+        // alert('user email and password incorrect');
+      }
+    } catch (error) {
+      console.log('error', error);
+      alert('user email and password incorrect');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const initialValues = {
     email: '',
@@ -69,13 +58,24 @@ export const Login = () => {
 
   const onGoogleButtonPress = async () => {
     try {
+      setIsLoading(true);
       const {idToken} = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       return auth().signInWithCredential(googleCredential);
     } catch (error) {
       alert('user not login with google');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <View style={{flex: 1, backgroundColor: '#010a29'}}>
@@ -133,7 +133,7 @@ export const Login = () => {
                   contentStyle={{
                     borderWidth: 2,
                     width: 200,
-                    borderRadius: 25,
+                    borderRadius: 10,
                     borderColor: '#fff',
                     backgroundColor: '#44b6e4',
                   }}
@@ -146,7 +146,7 @@ export const Login = () => {
                   contentStyle={{
                     borderWidth: 2,
                     width: 200,
-                    borderRadius: 25,
+                    borderRadius: 10,
                     borderColor: '#44b6e4',
                     backgroundColor: '#fff',
                   }}
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderColor: '#81defc',
     borderWidth: 2,
-    borderRadius: 25,
+    borderRadius: 10,
     padding: 10,
   },
   LogInText: {

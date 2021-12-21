@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, Image, ScrollView} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, Image, ScrollView, ActivityIndicator} from 'react-native';
 import {Button} from 'react-native-paper';
 import {CustomInput} from '../../components/CustomInput';
 import {Formik, Field} from 'formik';
@@ -9,8 +9,10 @@ import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const Signup = () => {
+  const [isLoading, setLoading] = useState(false);
   const createUser = async (email, password) => {
     try {
+      setLoading(true);
       let userCreate = await auth().createUserWithEmailAndPassword(
         email,
         password,
@@ -24,9 +26,17 @@ export const Signup = () => {
     } catch (error) {
       console.log('Error', error);
       alert('not create user');
+    } finally {
+      setLoading(false);
     }
   };
-
+  if (isLoading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
   const validationSchema = Yup.object({
     email: Yup.string().email('Invalid email').required('Required'),
     password: Yup.string().required('Required'),
@@ -78,7 +88,7 @@ export const Signup = () => {
                   contentStyle={{
                     borderWidth: 2,
                     width: 200,
-                    borderRadius: 25,
+                    borderRadius: 10,
                     borderColor: '#fff',
                     backgroundColor: '#44b6e4',
                   }}
