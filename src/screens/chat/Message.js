@@ -22,6 +22,7 @@ export const Message = () => {
   const [messages, setMessages] = useState([]);
   const [mediaUri, setMediaUri] = useState(null);
   const [isUploadLoading, setIsUploadLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [mediaType, setMediaType] = useState(null);
   const {params} = useRoute();
   // console.log(params.users, 'params user');
@@ -172,7 +173,7 @@ export const Message = () => {
             name="plus"
             size={34}
             color="#49b7e4"
-            onPress={openGallery}
+            onPress={openDocument}
           />
         </View>
       </>
@@ -187,12 +188,15 @@ export const Message = () => {
 
   const openDocument = async () => {
     try {
-      setIsUploadLoading(true);
+      setIsLoading(true);
       const res = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
       });
-      console.log('res document', res);
+      const selectedDocuments = res;
+      console.log('selectedDocuments', selectedDocuments);
+
       console.log(
+        'file uri',
         res.uri,
         res.fileCopyUri,
         res.type, // mime type
@@ -208,7 +212,7 @@ export const Message = () => {
         console.log(err, 'error');
       }
     } finally {
-      setIsUploadLoading(false);
+      setIsLoading(false);
     }
   };
 
